@@ -43,6 +43,11 @@ async def handle_message(message: types.Message) -> None:
     if message.text.startswith("/"):
         conversation = CONVERSATIONS_DB.get_conversation(message.from_user.id)
         conversation.set_tone(message.text[1:])
+
+        await bot.send_chat_action(message.from_user.id, action=types.ChatActions.TYPING)
+        await asyncio.sleep(1)
+
+        await bot.send_message(message.from_user.id, text=f"Information «{message.text[1:]}» has been added.")
         return None
 
     # Try to handle context
@@ -63,6 +68,9 @@ async def handle_message(message: types.Message) -> None:
         CONVERSATIONS_DB.write_chat_history(message.from_user.id, message.text, chatbot_response="None")
 
         # TODO: Move to separate function
+        await bot.send_chat_action(message.from_user.id, action=types.ChatActions.TYPING)
+        await asyncio.sleep(1.5)
+
         await bot.send_message(
             message.from_user.id,
             text="You are talking to:\n"
@@ -72,6 +80,9 @@ async def handle_message(message: types.Message) -> None:
                 f"Profession: {context.profession}\n"
                 f"Gender: {context.gender}\n"
         )
+        await bot.send_chat_action(message.from_user.id, action=types.ChatActions.TYPING)
+        await asyncio.sleep(1)
+
         await bot.send_message(message.from_user.id, text="Please initiate the discussion with your companion")
         return None
 
