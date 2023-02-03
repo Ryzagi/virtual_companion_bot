@@ -11,7 +11,7 @@ from converbot.database import ConversationDB
 
 CONVERSATIONS_DB = ConversationDB()
 
-API_TOKEN = (Path(__file__) / "token.txt").read_text().strip().replace("\n", "")
+API_TOKEN = (Path(__file__).parent / "token.txt").read_text().strip().replace("\n", "")
 
 bot = Bot(token=API_TOKEN)
 dispatcher = Dispatcher(bot)
