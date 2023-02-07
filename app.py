@@ -11,7 +11,7 @@ from converbot.database import ConversationDB
 
 CONVERSATIONS_DB = ConversationDB()
 
-API_TOKEN = (Path(__file__) / "token.txt").read_text().strip().replace("\n", "")
+API_TOKEN = (Path(__file__).parent / "token.txt").read_text().strip().replace("\n", "")
 
 bot = Bot(token=API_TOKEN)
 dispatcher = Dispatcher(bot)
@@ -24,23 +24,15 @@ RESTART_KEYBOARD = types.ReplyKeyboardMarkup(
 @dispatcher.message_handler(commands=["start"])
 async def start(message: types.Message):
     await bot.send_chat_action(message.from_user.id, action=types.ChatActions.TYPING)
-    await asyncio.sleep(1)
-
-    await bot.send_message(message.from_user.id, text="Hello! Welcome to Your Best Companion Bot!")
-    await asyncio.sleep(1)
 
     await bot.send_message(
         message.from_user.id,
-        text="Please, provide initial context. Format: Name, Age, Interests, Profession, Gender"
-    )
-    await asyncio.sleep(1)
-
-    await bot.send_message(
-        message.from_user.id,
-        text="Example: Alisa, 25, Guitar, Python Programmer, Female",
+        text="Hello! Welcome to Your Best Companion Bot!\n\n"
+        "Please, provide initial context. Format: Name, Age, Interests, Profession, Gender\n\n"
+        "Example: Alisa, 25, Guitar, Python Programmer, Female",
         reply_markup=RESTART_KEYBOARD
     )
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(1)
 
     CONVERSATIONS_DB.remove_conversation(message.from_user.id)
 
@@ -51,6 +43,11 @@ async def handle_message(message: types.Message) -> None:
     if message.text.startswith("/"):
         conversation = CONVERSATIONS_DB.get_conversation(message.from_user.id)
         conversation.set_tone(message.text[1:])
+
+        await bot.send_chat_action(message.from_user.id, action=types.ChatActions.TYPING)
+        await asyncio.sleep(1)
+
+        await bot.send_message(message.from_user.id, text=f"Information «{message.text[1:]}» has been added.")
         return None
 
     # Try to handle context
@@ -70,17 +67,34 @@ async def handle_message(message: types.Message) -> None:
         CONVERSATIONS_DB.add_conversation(message.from_user.id, conversation)
         CONVERSATIONS_DB.write_chat_history(message.from_user.id, message.text, chatbot_response="None")
 
-        await bot.send_message(message.from_user.id, text="Let's start the conversation!")
+        # TODO: Move to separate function
+        await bot.send_chat_action(message.from_user.id, action=types.ChatActions.TYPING)
+        await asyncio.sleep(1.5)
+
+        await bot.send_message(
+            message.from_user.id,
+            text="You are talking to:\n"
+                f"Name: {context.name}\n"
+                f"Age: {context.age}\n"
+                f"Interests: {context.interests}\n"
+                f"Profession: {context.profession}\n"
+                f"Gender: {context.gender}\n"
+        )
+        await bot.send_chat_action(message.from_user.id, action=types.ChatActions.TYPING)
+        await asyncio.sleep(1)
+
+        await bot.send_message(message.from_user.id, text="Please initiate the discussion with your companion")
         return None
 
     # Handle conversation
     await bot.send_chat_action(message.from_user.id, action=types.ChatActions.TYPING)
-    await asyncio.sleep(2)
 
     conversation = CONVERSATIONS_DB.get_conversation(message.from_user.id)
     chatbot_response = conversation.ask(message.text)
 
     CONVERSATIONS_DB.write_chat_history(message.from_user.id, message.text, chatbot_response)
+
+    await asyncio.sleep(len(chatbot_response) * 0.03)
 
     await bot.send_message(message.from_user.id, text=chatbot_response)
 
