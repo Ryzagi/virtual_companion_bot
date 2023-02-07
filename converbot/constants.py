@@ -12,4 +12,4 @@ TIME, USER_MESSAGE, CHATBOT_RESPONSE = (
 )
 
 DEFAULT_CONFIG_PATH = Path(__file__).parent.parent / "config" / "default.json"
-DEFAULT_FRIENDLY_TONE = "The interlocutors share a friendly atmosphere, conversing easily and with a sense of mutual understanding."
+DEFAULT_FRIENDLY_TONE = "nice, warm and polite"

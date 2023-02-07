@@ -16,10 +16,8 @@ class ConversationPrompt:
         
         {chat_history}
         
-        <{conversation_tone}>
-        
         USER_NAME: {user_input}
-        CHATBOT_NAME:
+        CHATBOT_NAME ({conversation_tone}):
         """
         string_base_template = string_base_template.replace(
             "PROMPT_TEXT", prompt_text
