@@ -12,7 +12,6 @@ from converbot.bot_utils import parse_context, create_conversation_from_context
 from converbot.constants import DEFAULT_CONFIG_PATH
 from converbot.database import ConversationDB
 
-os.environ["OPENAI_API_KEY"] = "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"
 CONVERSATIONS_DB = ConversationDB()
 
 API_TOKEN = (Path(__file__).parent / "token.txt").read_text().strip().replace("\n", "")
