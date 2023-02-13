@@ -1,13 +1,16 @@
 from pathlib import Path
-
+import json
 from langchain import LLMChain
+from langchain.callbacks.base import CallbackManager
 from langchain.chains import load_chain
 from langchain.chains.conversation.memory import ConversationSummaryBufferMemory
 from langchain.llms import OpenAI
 
-from converbot.constants import CONVERSATION_SAVE_DIR, DEFAULT_FRIENDLY_TONE
+from converbot.utils import read_json_file
+from converbot.constants import CONVERSATION_SAVE_DIR, DEFAULT_FRIENDLY_TONE, DEFAULT_CONFIG_PATH
 from converbot.info_handler import ConversationToneHandler
 from converbot.prompt import ConversationPrompt
+from converbot.callbacks import DebugPromptCallback
 
 
 class GPT3Conversation:
@@ -27,7 +30,10 @@ class GPT3Conversation:
         summary_buffer_memory_max_token_limit: int = 500,
     ):
         self._prompt = prompt
-        self._language_model = OpenAI()
+        config = read_json_file(DEFAULT_CONFIG_PATH)
+
+        _model_name = config["model"]
+        self._language_model = OpenAI(model_name=_model_name)
         self._memory = ConversationSummaryBufferMemory(
             llm=self._language_model,
             max_token_limit=summary_buffer_memory_max_token_limit,
@@ -36,15 +42,22 @@ class GPT3Conversation:
             human_prefix=self._prompt.user_name,
             ai_prefix=self._prompt.chatbot_name,
         )
+        self._debug_callback = DebugPromptCallback()
         self._conversation = LLMChain(
             llm=self._language_model,
             memory=self._memory,
             prompt=self._prompt.prompt,
             verbose=verbose,
+            callback_manager=CallbackManager([self._debug_callback])
         )
 
         self._tone_processor = ConversationToneHandler()
         self._tone = DEFAULT_FRIENDLY_TONE
+        self._debug = False
+
+    def change_debug_mode(self):
+        self._debug = not self._debug
+        return self._debug
 
     def set_tone(self, tone: str) -> None:
         """
@@ -66,13 +79,18 @@ class GPT3Conversation:
 
         Returns: The response from the chatbot.
         """
-        return self._conversation.predict(
+        output = self._conversation.predict(
             **{
                 self._prompt.user_input_key: user_input,
                 self._prompt.conversation_tone_key: self._tone,
                 self._prompt.memory_key: self._memory,
             },
         )
+
+        if not self._debug:
+            return output
+
+        return self._debug_callback.last_used_prompt + output
 
     def serialize(
         self, chatbot_name: str, serialize_dir: Path = CONVERSATION_SAVE_DIR
@@ -102,3 +120,5 @@ class GPT3Conversation:
         self._conversation = load_chain(
             (serialize_dir / chatbot_name).with_suffix(".json")
         )
+
+

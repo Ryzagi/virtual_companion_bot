@@ -1,4 +1,7 @@
 import asyncio
+import os
+import json
+
 from pathlib import Path
 
 import aioschedule
@@ -9,6 +12,7 @@ from converbot.bot_utils import parse_context, create_conversation_from_context
 from converbot.constants import DEFAULT_CONFIG_PATH
 from converbot.database import ConversationDB
 
+os.environ["OPENAI_API_KEY"] = "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"
 CONVERSATIONS_DB = ConversationDB()
 
 API_TOKEN = (Path(__file__).parent / "token.txt").read_text().strip().replace("\n", "")
@@ -17,8 +21,11 @@ bot = Bot(token=API_TOKEN)
 dispatcher = Dispatcher(bot)
 
 RESTART_KEYBOARD = types.ReplyKeyboardMarkup(
-    keyboard=[[KeyboardButton('/start')]], resize_keyboard=True, one_time_keyboard=True
+    keyboard=[[KeyboardButton('/start')], [KeyboardButton('/debug')]], resize_keyboard=True,
+    one_time_keyboard=True
 )
+
+IS_DEBUG = False
 
 
 @dispatcher.message_handler(commands=["start"])
@@ -35,6 +42,22 @@ async def start(message: types.Message):
     await asyncio.sleep(1)
 
     CONVERSATIONS_DB.remove_conversation(message.from_user.id)
+
+
+@dispatcher.message_handler(commands=["debug"])
+async def debug(message: types.Message):
+    conversation = CONVERSATIONS_DB.get_conversation(message.from_user.id)
+    if conversation is None:
+        await bot.send_message(message.from_user.id,
+                         text="Please, provide initial context. Format: Name, Age, Interests, Profession, Gender")
+    state = conversation.change_debug_mode()
+    if state:
+        await bot.send_message(message.from_user.id, text="«Debug mode on»\nPlease continue the discussion with your companion")
+    else:
+        await bot.send_message(message.from_user.id, text="«Debug mode off»\nPlease continue the discussion with your companion")
+
+    #config = read_json_file(DEFAULT_CONFIG_PATH)
+    #await bot.send_message(message.from_user.id, text=config["prompt_template"])
 
 
 @dispatcher.message_handler()
@@ -91,10 +114,9 @@ async def handle_message(message: types.Message) -> None:
 
     conversation = CONVERSATIONS_DB.get_conversation(message.from_user.id)
     chatbot_response = conversation.ask(message.text)
-
     CONVERSATIONS_DB.write_chat_history(message.from_user.id, message.text, chatbot_response)
 
-    await asyncio.sleep(len(chatbot_response) * 0.03)
+    #await asyncio.sleep(len(chatbot_response) * 0.03)
 
     await bot.send_message(message.from_user.id, text=chatbot_response)
 
@@ -114,6 +136,14 @@ async def scheduler():
 async def on_startup(dispatcher):
     asyncio.create_task(scheduler())
 
+
+def read_json_file(file_path):
+    # Open the file
+    with open(file_path, 'r') as file:
+        # Load the JSON data
+        data = json.load(file)
+        # return the data
+        return data
 
 if __name__ == "__main__":
     executor.start_polling(dispatcher, skip_updates=False, on_startup=on_startup)

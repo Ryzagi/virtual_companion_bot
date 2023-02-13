@@ -13,12 +13,9 @@ class ConversationPrompt:
         chatbot_name: str = "AI Companion",
     ):
         string_base_template = """PROMPT_TEXT
-        
-        {chat_history}
-        
-        USER_NAME: {user_input}
-        CHATBOT_NAME ({conversation_tone}):
-        """
+{chat_history}
+USER_NAME: {user_input}
+CHATBOT_NAME ({conversation_tone}):"""
         string_base_template = string_base_template.replace(
             "PROMPT_TEXT", prompt_text
         )
