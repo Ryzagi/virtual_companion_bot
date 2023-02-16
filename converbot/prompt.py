@@ -9,8 +9,8 @@ class ConversationPrompt:
     def __init__(
         self,
         prompt_text: str,
-        user_name: str = "Human",
-        chatbot_name: str = "AI Companion",
+        user_name: str = "Man",
+        chatbot_name: str = "You",
     ):
         string_base_template = """PROMPT_TEXT
 {chat_history}
@@ -25,7 +25,7 @@ CHATBOT_NAME ({conversation_tone}):"""
         string_base_template = string_base_template.replace(
             "CHATBOT_NAME", chatbot_name
         )
-
+        #print(string_base_template)
         self._prompt = PromptTemplate(
             input_variables=["chat_history", "user_input", "conversation_tone"],
             template=string_base_template,

@@ -8,7 +8,7 @@ from langchain.llms import OpenAI
 
 from converbot.utils import read_json_file
 from converbot.constants import CONVERSATION_SAVE_DIR, DEFAULT_FRIENDLY_TONE, DEFAULT_CONFIG_PATH
-from converbot.info_handler import ConversationToneHandler
+from converbot.mood_handler import ConversationToneHandler
 from converbot.prompt import ConversationPrompt
 from converbot.callbacks import DebugPromptCallback
 

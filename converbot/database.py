@@ -59,7 +59,7 @@ class ConversationDB:
         filename = self._chat_history_save_dir / f"{user_id}.csv"
         is_already_exist = filename.exists()
 
-        with (self._chat_history_save_dir / f"{user_id}.csv").open("a") as f:
+        with (self._chat_history_save_dir / f"{user_id}.csv").open("a", encoding="utf-8") as f:
             csv_writer = writer(
                 f, delimiter=",", quotechar='"', quoting=QUOTE_MINIMAL
             )
@@ -67,6 +67,7 @@ class ConversationDB:
                 csv_writer.writerow(
                     ["time", "user_message", "chatbot_response"]
                 )
+
             csv_writer.writerow([time.time(), message, chatbot_response])
 
     def serialize_conversations(self) -> None:

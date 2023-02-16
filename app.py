@@ -12,6 +12,7 @@ from converbot.bot_utils import parse_context, create_conversation_from_context
 from converbot.constants import DEFAULT_CONFIG_PATH
 from converbot.database import ConversationDB
 
+
 CONVERSATIONS_DB = ConversationDB()
 
 API_TOKEN = (Path(__file__).parent / "token.txt").read_text().strip().replace("\n", "")
@@ -51,9 +52,11 @@ async def debug(message: types.Message):
                          text="Please, provide initial context. Format: Name, Age, Interests, Profession, Gender")
     state = conversation.change_debug_mode()
     if state:
-        await bot.send_message(message.from_user.id, text="«Debug mode on»\nPlease continue the discussion with your companion")
+        await bot.send_message(message.from_user.id, text="«Debug mode on»\nPlease continue the discussion with your "
+                                                          "companion")
     else:
-        await bot.send_message(message.from_user.id, text="«Debug mode off»\nPlease continue the discussion with your companion")
+        await bot.send_message(message.from_user.id, text="«Debug mode off»\nPlease continue the discussion with your "
+                                                          "companion")
 
     #config = read_json_file(DEFAULT_CONFIG_PATH)
     #await bot.send_message(message.from_user.id, text=config["prompt_template"])
@@ -74,18 +77,17 @@ async def handle_message(message: types.Message) -> None:
 
     # Try to handle context
     if CONVERSATIONS_DB.exists(message.from_user.id) is False:
-        context = parse_context(message.text)
-        if context is None:
-            await bot.send_message(message.from_user.id, text="Wrong context format. Try again.")
-            await asyncio.sleep(1)
-
-            await bot.send_message(
-                message.from_user.id,
-                text="Please, provide initial context. Format: Name, Age, Interests, Profession, Gender"
-            )
-            await asyncio.sleep(1)
-
-        conversation = create_conversation_from_context(context, config_path=DEFAULT_CONFIG_PATH)
+        #context = parse_context(message.text)
+        #if context is None:
+        #    await bot.send_message(message.from_user.id, text="Wrong context format. Try again.")
+        #    await asyncio.sleep(1)
+        #    await bot.send_message(
+        #        message.from_user.id,
+        #        text="Please, provide initial context. Format: Name, Age, Interests, Profession, Gender"
+        #    )
+        #    await asyncio.sleep(1)
+#
+        conversation = create_conversation_from_context(message.text, config_path=DEFAULT_CONFIG_PATH)
         CONVERSATIONS_DB.add_conversation(message.from_user.id, conversation)
         CONVERSATIONS_DB.write_chat_history(message.from_user.id, message.text, chatbot_response="None")
 
@@ -93,15 +95,15 @@ async def handle_message(message: types.Message) -> None:
         await bot.send_chat_action(message.from_user.id, action=types.ChatActions.TYPING)
         await asyncio.sleep(1.5)
 
-        await bot.send_message(
-            message.from_user.id,
-            text="You are talking to:\n"
-                f"Name: {context.name}\n"
-                f"Age: {context.age}\n"
-                f"Interests: {context.interests}\n"
-                f"Profession: {context.profession}\n"
-                f"Gender: {context.gender}\n"
-        )
+        #await bot.send_message(
+        #    message.from_user.id,
+        #    text="You are talking to:\n"
+        #        f"Name: {context.name}\n"
+        #        f"Age: {context.age}\n"
+        #        f"Interests: {context.interests}\n"
+        #        f"Profession: {context.profession}\n"
+        #        f"Gender: {context.gender}\n"
+        #)
         await bot.send_chat_action(message.from_user.id, action=types.ChatActions.TYPING)
         await asyncio.sleep(1)
 
