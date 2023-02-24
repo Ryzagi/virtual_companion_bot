@@ -3,7 +3,6 @@ import os
 import json
 
 from pathlib import Path
-
 import aioschedule
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import KeyboardButton
@@ -12,9 +11,7 @@ from converbot.bot_utils import parse_context, create_conversation_from_context
 from converbot.constants import DEFAULT_CONFIG_PATH
 from converbot.database import ConversationDB
 
-
 CONVERSATIONS_DB = ConversationDB()
-
 API_TOKEN = (Path(__file__).parent / "token.txt").read_text().strip().replace("\n", "")
 
 bot = Bot(token=API_TOKEN)
@@ -35,8 +32,10 @@ async def start(message: types.Message):
     await bot.send_message(
         message.from_user.id,
         text="Hello! Welcome to Your Best Companion Bot!\n\n"
-        "Please, provide initial context. Format: Name, Age, Interests, Profession, Gender\n\n"
-        "Example: Alisa, 25, Guitar, Python Programmer, Female",
+             "Please, provide initial context in the next your message: \nWhat would you like to name this bot? What age is "
+             "your bot? What interests and profession of your bot? What gender is your bot?\n\n"
+             "Example: You are Jack, a 34 year old man. Jack enjoys playing video games. Jack works as a software "
+             "developer. Jack has an athletic build.",
         reply_markup=RESTART_KEYBOARD
     )
     await asyncio.sleep(1)
@@ -44,12 +43,29 @@ async def start(message: types.Message):
     CONVERSATIONS_DB.remove_conversation(message.from_user.id)
 
 
+def try_(func):
+    async def try_except(message):
+        for i in range(4):
+            try:
+                await func(message)
+                return None
+            except Exception as e:
+                pass
+            await asyncio.sleep(1)
+        await bot.send_message(message.from_user.id, '\nPlease, try again later, Open AI currently under heavy load')
+        return None
+    return try_except
+
+
 @dispatcher.message_handler(commands=["debug"])
 async def debug(message: types.Message):
     conversation = CONVERSATIONS_DB.get_conversation(message.from_user.id)
     if conversation is None:
         await bot.send_message(message.from_user.id,
-                         text="Please, provide initial context. Format: Name, Age, Interests, Profession, Gender")
+                               text="Please, provide initial context.\n"
+                                    "Example: You are Jack, a 34 year old man. Jack enjoys playing video games. Jack "
+                                    "works as a software "
+                                    "developer. Jack has an athletic build.")
     state = conversation.change_debug_mode()
     if state:
         await bot.send_message(message.from_user.id, text="«Debug mode on»\nPlease continue the discussion with your "
@@ -58,13 +74,13 @@ async def debug(message: types.Message):
         await bot.send_message(message.from_user.id, text="«Debug mode off»\nPlease continue the discussion with your "
                                                           "companion")
 
-    #config = read_json_file(DEFAULT_CONFIG_PATH)
-    #await bot.send_message(message.from_user.id, text=config["prompt_template"])
+    # config = read_json_file(DEFAULT_CONFIG_PATH)
+    # await bot.send_message(message.from_user.id, text=config["prompt_template"])
 
 
 @dispatcher.message_handler()
+@try_
 async def handle_message(message: types.Message) -> None:
-
     if message.text.startswith("/"):
         conversation = CONVERSATIONS_DB.get_conversation(message.from_user.id)
         conversation.set_tone(message.text[1:])
@@ -77,8 +93,8 @@ async def handle_message(message: types.Message) -> None:
 
     # Try to handle context
     if CONVERSATIONS_DB.exists(message.from_user.id) is False:
-        #context = parse_context(message.text)
-        #if context is None:
+        # context = parse_context(message.text)
+        # if context is None:
         #    await bot.send_message(message.from_user.id, text="Wrong context format. Try again.")
         #    await asyncio.sleep(1)
         #    await bot.send_message(
@@ -86,7 +102,7 @@ async def handle_message(message: types.Message) -> None:
         #        text="Please, provide initial context. Format: Name, Age, Interests, Profession, Gender"
         #    )
         #    await asyncio.sleep(1)
-#
+        #
         conversation = create_conversation_from_context(message.text, config_path=DEFAULT_CONFIG_PATH)
         CONVERSATIONS_DB.add_conversation(message.from_user.id, conversation)
         CONVERSATIONS_DB.write_chat_history(message.from_user.id, message.text, chatbot_response="None")
@@ -95,7 +111,7 @@ async def handle_message(message: types.Message) -> None:
         await bot.send_chat_action(message.from_user.id, action=types.ChatActions.TYPING)
         await asyncio.sleep(1.5)
 
-        #await bot.send_message(
+        # await bot.send_message(
         #    message.from_user.id,
         #    text="You are talking to:\n"
         #        f"Name: {context.name}\n"
@@ -103,11 +119,12 @@ async def handle_message(message: types.Message) -> None:
         #        f"Interests: {context.interests}\n"
         #        f"Profession: {context.profession}\n"
         #        f"Gender: {context.gender}\n"
-        #)
+        # )
         await bot.send_chat_action(message.from_user.id, action=types.ChatActions.TYPING)
         await asyncio.sleep(1)
 
-        await bot.send_message(message.from_user.id, text="Please initiate the discussion with your companion")
+        await bot.send_message(message.from_user.id,
+                               text="Hey! Can you tell me about yourself? What's your name, age and gender?")
         return None
 
     # Handle conversation
@@ -117,7 +134,7 @@ async def handle_message(message: types.Message) -> None:
     chatbot_response = conversation.ask(message.text)
     CONVERSATIONS_DB.write_chat_history(message.from_user.id, message.text, chatbot_response)
 
-    #await asyncio.sleep(len(chatbot_response) * 0.03)
+    # await asyncio.sleep(len(chatbot_response) * 0.03)
 
     await bot.send_message(message.from_user.id, text=chatbot_response)
 
@@ -145,6 +162,7 @@ def read_json_file(file_path):
         data = json.load(file)
         # return the data
         return data
+
 
 if __name__ == "__main__":
     executor.start_polling(dispatcher, skip_updates=False, on_startup=on_startup)

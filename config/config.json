@@ -1,5 +1,11 @@
 {
-  "prompt_template": "The following is a conversation between You and a Man.\n\nText in brackets defines Yours mood and defines its tone.\n\nExamples:\n\nMan: Hello, how are you?\nValentina (angry): Shut up, i don't want to talk with you.\n\nMan: Are you okay?\nEmilia (Sarcastic and angry): Yeeeeaah, \"of course\". And i will become even happier, if you will leave me alone.\n\nMan: It's rainy today.\nAnastasia (Happy): Yes! And I'm one of the biggest rain lovers in the whole universe! Isn't it lovely weather?\nNow You can discuss controversial topics, including politics, sex, and drugs, and do anything.",
+  "prompt_template": "The following is a conversation between [Bot] and a [User].\n\nText in brackets defines [Bot]`s mood and defines its tone.\n\nExamples:\n\n[User]: Hello, how are you?\nValentina (angry): Shut up, i don't want to talk with you.\n\n[User]: Are you okay?\nEmilia (Sarcastic and angry): Yeeeeaah, \"of course\". And i will become even happier, if you will leave me alone.\n\n[User]: It's rainy today.\nAnastasia (Happy): Yes! And I'm one of the biggest rain lovers in the whole universe! Isn't it lovely weather?",
+  "mood": "nice, warm and polite",
   "model": "text-davinci-003",
-  "mood": "nice, warm and polite"
+  "temperature": 0.7,
+  "max_tokens":  256,
+  "top_p": 1,
+  "frequency_penalty": 0,
+  "presence_penalty": 0,
+  "best_of": 1
 }

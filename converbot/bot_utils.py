@@ -74,9 +74,9 @@ def create_conversation_from_context(
     #print(info_hdlr)
     conversation = GPT3Conversation(
         prompt=ConversationPrompt(
-            prompt_text=config.prompt_template + '\n\nEnd of examples.\n' + '\nInformation about You:' + context_summary + '\n\nFollowing text defines Yours texting style and messaging style:' + text_style + '\n\nConversation:',
-            user_name="Man",
-            chatbot_name="You"
+            prompt_text=config.prompt_template + '\n\nEnd of examples.\n' + '\nInformation about [Bot]:' + context_summary + '\n\nFollowing text defines [Bot`s] texting style and messaging style:' + text_style + '\n\nConversation:',
+            user_name="[User]",
+            chatbot_name="[Bot]"
         ),
         summary_buffer_memory_max_token_limit=config.summary_buffer_memory_max_token_limit,
     )

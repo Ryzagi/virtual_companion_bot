@@ -33,7 +33,20 @@ class GPT3Conversation:
         config = read_json_file(DEFAULT_CONFIG_PATH)
 
         _model_name = config["model"]
-        self._language_model = OpenAI(model_name=_model_name)
+        _temperature = config["temperature"]
+        _max_tokens = config["max_tokens"]
+        _top_p = config["top_p"]
+        _frequency_penalty = config["frequency_penalty"]
+        _presence_penalty = config["presence_penalty"]
+        _best_of = config["best_of"]
+        self._language_model = OpenAI(model_name=_model_name,
+                                      temperature=_temperature,
+                                      max_tokens=_max_tokens,
+                                      top_p=_top_p,
+                                      frequency_penalty=_frequency_penalty,
+                                      presence_penalty=_presence_penalty,
+                                      best_of=_best_of
+                                      )
         self._memory = ConversationSummaryBufferMemory(
             llm=self._language_model,
             max_token_limit=summary_buffer_memory_max_token_limit,

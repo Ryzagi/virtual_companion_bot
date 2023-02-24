@@ -17,8 +17,13 @@ class RomanitcConversationConfig:
     prompt_template: str
     model: str
     mood: str
+    temperature: float
+    max_tokens: int
+    top_p: float
+    frequency_penalty: float
+    presence_penalty: float
+    best_of: int
     summary_buffer_memory_max_token_limit: int = 1000
-
     def to_json(self, save_path: Path) -> None:
         """
         Save the configuration to a json file.
