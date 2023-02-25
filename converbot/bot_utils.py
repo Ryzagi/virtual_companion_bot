@@ -56,22 +56,9 @@ def create_conversation_from_context(
 
     Returns: The conversation.
     """
-    #print(context)
     config = RomanitcConversationConfig.from_json(config_path)
     text_style = ConversationTextStyleHandler()(context)
     context_summary = ConversationBotContextHandler()(context)
-
-    #info = parse_context(context)
-    #print(info)
-    #info_hdlr = RomanticConversationPrompt(
-    #        prompt_template=config.prompt_template,
-    #        name=info.name,
-    #        age=info.age,
-    #        interests=info.interests,
-    #        profession=info.profession,
-    #        gender=info.gender,
-    #    )
-    #print(info_hdlr)
     conversation = GPT3Conversation(
         prompt=ConversationPrompt(
             prompt_text=config.prompt_template + '\n\nEnd of examples.\n' + '\nInformation about [Bot]:' + context_summary + '\n\nFollowing text defines [Bot`s] texting style and messaging style:' + text_style + '\n\nConversation:',
