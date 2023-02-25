@@ -18,7 +18,6 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils import executor
 
 CONVERSATIONS_DB = ConversationDB()
-os.environ["OPENAI_API_KEY"] = "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"
 API_TOKEN = (Path(__file__).parent / "token.txt").read_text().strip().replace("\n", "")
 
 bot = Bot(token=API_TOKEN)
