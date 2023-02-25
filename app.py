@@ -143,7 +143,7 @@ async def show_data(message: types.Message):
     res = f"Here's the information about Bot:\n" \
           f"Name: {data.get('name', 'Not provided')}\n" \
           f"Age: {data.get('age', 'Not provided')}\n" \
-          f"Gender: {data.get('gender', 'Not provided')}" \
+          f"Gender: {data.get('gender', 'Not provided')}\n" \
           f"Hobby: {data.get('interest', 'Not provided')}\n" \
           f"Profession: {data.get('profession', 'Not provided')}\n" \
           f"Appearance: {data.get('appearance', 'Not provided')}\n" \
