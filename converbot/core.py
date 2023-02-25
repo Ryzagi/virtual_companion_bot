@@ -26,26 +26,19 @@ class GPT3Conversation:
     def __init__(
         self,
         prompt: ConversationPrompt,
+        tone: str = DEFAULT_FRIENDLY_TONE,
         verbose: bool = False,
         summary_buffer_memory_max_token_limit: int = 500,
     ):
         self._prompt = prompt
         config = read_json_file(DEFAULT_CONFIG_PATH)
-
-        _model_name = config["model"]
-        _temperature = config["temperature"]
-        _max_tokens = config["max_tokens"]
-        _top_p = config["top_p"]
-        _frequency_penalty = config["frequency_penalty"]
-        _presence_penalty = config["presence_penalty"]
-        _best_of = config["best_of"]
-        self._language_model = OpenAI(model_name=_model_name,
-                                      temperature=_temperature,
-                                      max_tokens=_max_tokens,
-                                      top_p=_top_p,
-                                      frequency_penalty=_frequency_penalty,
-                                      presence_penalty=_presence_penalty,
-                                      best_of=_best_of
+        self._language_model = OpenAI(model_name=config["model"],
+                                      temperature=config["temperature"],
+                                      max_tokens=config["max_tokens"],
+                                      top_p=config["top_p"],
+                                      frequency_penalty=config["frequency_penalty"],
+                                      presence_penalty=config["presence_penalty"],
+                                      best_of=config["best_of"]
                                       )
         self._memory = ConversationSummaryBufferMemory(
             llm=self._language_model,
@@ -65,7 +58,7 @@ class GPT3Conversation:
         )
 
         self._tone_processor = ConversationToneHandler()
-        self._tone = DEFAULT_FRIENDLY_TONE
+        self._tone = self._tone_processor(tone)
         self._debug = False
 
     def change_debug_mode(self):

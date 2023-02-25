@@ -18,7 +18,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils import executor
 
 CONVERSATIONS_DB = ConversationDB()
-os.environ["OPENAI_API_KEY"] = "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"
+
 API_TOKEN = (Path(__file__).parent / "token.txt").read_text().strip().replace("\n", "")
 
 bot = Bot(token=API_TOKEN)
@@ -43,17 +43,20 @@ async def start(message: types.Message):
     class BotInfo(StatesGroup):
         name = State()
         age = State()
+        gender = State()
         interest = State()
         profession = State()
-        gender = State()
+        appearance = State()
+        relationship = State()
+        mood = State()
 
     # Set the initial state to 'name'
     await BotInfo.name.set()
 
     # Ask for the bot's name
-    await bot.send_message(message.from_user.id, text="Hello! Welcome to Your Best Companion Bot!\n"
-                                                      "Please, provide initial information about your Bot.\n\n"
-                                                      "What would you like to name this bot?")
+    await bot.send_message(message.from_user.id, text="Welcome to Neece.ai\n"
+                                                      "Let’s take a moment to describe the AI persona you want to talk to.")
+    await bot.send_message(message.from_user.id, text="What is the name you want to give your companion?")
 
     # Define the handler for the bot's name
     @dispatcher.message_handler(state=BotInfo.name)
@@ -61,7 +64,7 @@ async def start(message: types.Message):
         async with state.proxy() as data:
             data['name'] = message.text
         await BotInfo.age.set()
-        await bot.send_message(message.from_user.id, text="What age is your bot?")
+        await bot.send_message(message.from_user.id, text="What is their age?")
 
     @dispatcher.message_handler(state=BotInfo.age, content_types=types.ContentTypes.TEXT)
     async def process_age(message: types.Message, state: FSMContext):
@@ -69,29 +72,51 @@ async def start(message: types.Message):
             return await message.reply("Age should be a number.\nHow old is your bot?")
         async with state.proxy() as data:
             data['age'] = message.text
-        await BotInfo.interest.set()
-        await bot.send_message(message.from_user.id, text="What hobby is your bot?")
-
-    @dispatcher.message_handler(state=BotInfo.interest)
-    async def process_interest(message: types.Message, state: FSMContext):
-        async with state.proxy() as data:
-            data['interest'] = message.text
-        await BotInfo.profession.set()
-        await bot.send_message(message.from_user.id, text="What profession is your bot?")
-
-    @dispatcher.message_handler(state=BotInfo.profession)
-    async def process_profession(message: types.Message, state: FSMContext):
-        async with state.proxy() as data:
-            data['profession'] = message.text
         await BotInfo.gender.set()
-        await bot.send_message(message.from_user.id, text="What gender is your bot?")
+        await bot.send_message(message.from_user.id, text="What gender?")
 
     @dispatcher.message_handler(state=BotInfo.gender)
     async def process_gender(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data['gender'] = message.text
             # You can use the data dictionary here to create your bot object with the collected information
-        context = await show_data(message)
+        await BotInfo.interest.set()
+        await bot.send_message(message.from_user.id, text="What do they like to do for fun?")
+
+    @dispatcher.message_handler(state=BotInfo.interest)
+    async def process_interest(message: types.Message, state: FSMContext):
+        async with state.proxy() as data:
+            data['interest'] = message.text
+        await BotInfo.profession.set()
+        await bot.send_message(message.from_user.id, text="What is their profession?")
+
+    @dispatcher.message_handler(state=BotInfo.profession)
+    async def process_profession(message: types.Message, state: FSMContext):
+        async with state.proxy() as data:
+            data['profession'] = message.text
+        await BotInfo.appearance.set()
+        await bot.send_message(message.from_user.id, text="What do they look like?")
+
+    @dispatcher.message_handler(state=BotInfo.appearance)
+    async def process_appearance(message: types.Message, state: FSMContext):
+        async with state.proxy() as data:
+            data['appearance'] = message.text
+        await BotInfo.relationship.set()
+        await bot.send_message(message.from_user.id, text="What is their relationship status?")
+
+    @dispatcher.message_handler(state=BotInfo.relationship)
+    async def process_relationship(message: types.Message, state: FSMContext):
+        async with state.proxy() as data:
+            data['relationship'] = message.text
+        await BotInfo.mood.set()
+        await bot.send_message(message.from_user.id, text="Thank you. Finally, describe their personality.")
+
+    @dispatcher.message_handler(state=BotInfo.mood)
+    async def process_mood(message: types.Message, state: FSMContext):
+        async with state.proxy() as data:
+            data['mood'] = message.text
+            # You can use the data dictionary here to create your bot object with the collected information
+        context, tone = await show_data(message)
         await bot.send_message(message.from_user.id, text=context)
         # Try to handle context
         await state.finish()
@@ -104,7 +129,7 @@ async def start(message: types.Message):
         await bot.send_message(message.from_user.id,
                                text="Hey! Can you tell me about yourself? What's your name, age and gender?")
         if CONVERSATIONS_DB.exists(message.from_user.id) is False:
-            conversation = create_conversation_from_context(context, config_path=DEFAULT_CONFIG_PATH)
+            conversation = create_conversation_from_context(context, tone, config_path=DEFAULT_CONFIG_PATH)
             CONVERSATIONS_DB.add_conversation(message.from_user.id, conversation)
             CONVERSATIONS_DB.write_chat_history(message.from_user.id, message.text, chatbot_response="None")
             return None
@@ -118,10 +143,13 @@ async def show_data(message: types.Message):
     res = f"Here's the information about Bot:\n" \
           f"Name: {data.get('name', 'Not provided')}\n" \
           f"Age: {data.get('age', 'Not provided')}\n" \
+          f"Gender: {data.get('gender', 'Not provided')}" \
           f"Hobby: {data.get('interest', 'Not provided')}\n" \
           f"Profession: {data.get('profession', 'Not provided')}\n" \
-          f"Gender: {data.get('gender', 'Not provided')}"
-    return res
+          f"Appearance: {data.get('appearance', 'Not provided')}\n" \
+          f"Relationship: {data.get('relationship', 'Not provided')}\n" \
+          f"Mood: {data.get('mood', 'Not provided')}\n"
+    return res, data.get('mood', 'Not provided')
 
 
 def try_(func):

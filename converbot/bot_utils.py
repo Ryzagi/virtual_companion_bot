@@ -46,6 +46,7 @@ def parse_context(message: str) -> Optional[ConversationContext]:
 
 def create_conversation_from_context(
         context: str,
+        tone: str,
         config_path: Path,
 ) -> GPT3Conversation:
     """
@@ -59,7 +60,9 @@ def create_conversation_from_context(
     config = RomanitcConversationConfig.from_json(config_path)
     text_style = ConversationTextStyleHandler()(context)
     context_summary = ConversationBotContextHandler()(context)
+
     conversation = GPT3Conversation(
+        tone=tone,
         prompt=ConversationPrompt(
             prompt_text=config.prompt_template + '\n\nEnd of examples.\n' + '\nInformation about [Bot]:' + context_summary + '\n\nFollowing text defines [Bot`s] texting style and messaging style:' + text_style + '\n\nConversation:',
             user_name="[User]",
