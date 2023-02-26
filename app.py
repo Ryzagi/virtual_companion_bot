@@ -140,15 +140,15 @@ async def show_data(message: types.Message):
     state = dispatcher.current_state(chat=message.chat.id, user=message.from_user.id)
     data = await state.get_data()
 
-    res = f"Here's the information about Bot:\n" \
+    res = f"Here's the information about your companion:\n\n" \
           f"Name: {data.get('name', 'Not provided')}\n" \
           f"Age: {data.get('age', 'Not provided')}\n" \
           f"Gender: {data.get('gender', 'Not provided')}\n" \
           f"Hobby: {data.get('interest', 'Not provided')}\n" \
           f"Profession: {data.get('profession', 'Not provided')}\n" \
           f"Appearance: {data.get('appearance', 'Not provided')}\n" \
-          f"Relationship: {data.get('relationship', 'Not provided')}\n" \
-          f"Mood: {data.get('mood', 'Not provided')}\n"
+          f"Relationship status: {data.get('relationship', 'Not provided')}\n" \
+          f"Personality: {data.get('mood', 'Not provided')}\n"
     return res, data.get('mood', 'Not provided')
 
 
